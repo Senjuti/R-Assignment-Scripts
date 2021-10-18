@@ -1,0 +1,167 @@
+---
+title: "Explaining Social Expenditures in the OECD"
+author: "Senjuti Kundu"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    math: katex
+params:
+  dataset: "socexpdata.csv"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(katex)
+library(ggplot2)
+```
+
+## Instructions
+
+The purpose of this assignment is to practice estimating a basic linear regression model with R and to interpret the results.
+
+Social expenditures in advanced democracies, here defined as belonging to the OECD, vary substantially. While some countries spend a lot on social policies relative to the size of the economy, other countries spend less. Your task is to study the determinants of social expenditures across OECD countries and to examine three hypotheses that could explain this variation.
+
+**Hypothesis 1** focuses on the ideological composition of the government and states that countries with left-leaning governments will spend more on social policies because governments composed of left-leaning parties will have a preference to redistribute resources from the rich to the poor.
+
+**Hypothesis 2** focuses on the structural context of the economy according to which countries with higher unemployment rates spend more on social policies.
+
+**Hypothesis 3** focuses on political institutions and states that countries in which parliaments are elected by proportional representation (as opposed to majoritarian rule) spend more on social policies because political parties in such systems have class-based (as opposed to constituency-based) affiliations, increasing the pressures for universal social programs in proportional representation systems.
+
+## Data
+
+The data set ``r params$dataset`` contains the following variables for 23 OECD countries from the year 2000:
+
+# Assignment
+
+Using R, load the data set ``r params$dataset``.
+
+```{r echo=FALSE}
+data <- read.csv(file="C:\\Users\\senju\\Documents\\R-Projects\\socexpdata.csv")
+df <- data.frame(data)
+
+socexp <- df[, 6]
+unemp <- df[, 4]
+govleft <- df[, 3]
+proprep <- df[, 5]
+
+avg_socexp <- mean(socexp)
+avg_unemp <- mean(unemp)
+avg_govleft <- mean(govleft)
+
+max_socexp <- max(socexp)
+max_unemp <- max(unemp)
+max_goveleft <- max(govleft)
+
+min_socexp <- min(socexp)
+min_unemp <- min(unemp)
+min_govleft <- min(govleft)
+
+sd_socexp <- sd(socexp)
+sd_unemp <- sd(unemp)
+sd_govleft <- sd(govleft)
+
+```
+
+Calculate summary statistics of the variables.
+
+```{r echo=FALSE}
+tbl_stats <- matrix(c(avg_socexp, avg_unemp, avg_govleft, max_socexp, max_unemp, max_goveleft, min_socexp, min_unemp, min_govleft, sd_socexp, sd_unemp, sd_govleft), ncol=3, byrow=TRUE)
+colnames(tbl_stats) <- c("Socexp", "Unemp", "Govleft")
+rownames(tbl_stats) <- c("Average", "Maximum", "Minimum", "Std. Deviation")
+
+tbl_stats <- as.table(tbl_stats)
+kable(tbl_stats, caption="Table of Statistics")
+```
+
+Evaluate the competing hypotheses about social expenditure levels using a correctly specified multivariate linear regression model. Present your regression estimation results in a nicely formatted table.
+
+```{r echo=FALSE, message=FALSE}
+reg1 <- lm(socexp~govleft)
+reg2 <- lm(socexp~unemp)
+reg3 <- lm(socexp~proprep)
+
+reg_table <- matrix(c(coefficients(reg1), coefficients(reg2), coefficients(reg3)),ncol=3)
+colnames(reg_table) <- c('x = Govleft', 'x = Unemp', 'x = Proprep')
+rownames(reg_table) <- c('Intercept (a value)', 'Slope (b value)')
+reg_table <- as.table(reg_table)
+kable(reg_table, caption="Table of Regression Estimation Results where y = a + x * b. Here y = Socexp.")
+
+#Simple Linear Regression in ggplot
+ggplot(data=data, mapping=aes(x=govleft, y=socexp)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Socexp vs Govleft", x="Govleft", y="Socexp")
+ggplot(data=data, mapping=aes(x=unemp, y=socexp)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Socexp vs Unemp", x="Unemp", y="Socexp")
+ggplot(data=data, mapping=aes(x=proprep, y=socexp)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Socexp vs Proprep", x="Proprep", y="Socexp")
+
+```
+
+
+Evaluate the goodness-of-fit of your model.
+
+
+>We can evaluate the goodness of fit of the model by looking at R-squared or variance explained value.
+>Looking at the R-squared value from the summary statistics in the next section, we can see that none of these models perform very well using a single predictor variable since their R-squared values are close to 0.
+
+Interpret each regression coefficient.
+
+>Summary statistics where socexp is the target variable and we compare govleft, umemp and proprep as the predictor variables. 
+>The coefficients refer to the value of the intercept (a value) and slope (b value).
+>The p-value indicates whether you can reject or accept the hypothesis i.e. is the predictor meaningful for your model. A small p-value means that it is more meaningful as a predictor.
+>Residuals represent the difference between real and predicted values.
+>Coeffecient of determination or R-squared measures how good the fit of your model is. For models that fit the data well, R-squared is near 1. Models that poorly fit the data have R-squared near 0.
+
+```{r echo=FALSE}
+summary(reg1)
+summary(reg2)
+summary(reg3)
+```
+
+
+Using your coefficient estimates, calculate the predicted level of social expenditures for two hypothetical countries:
+
+(a) A country with proportional representation, 75% of left parties in government, and a 5% unemployment rate. 
+
+(b) A country with proportional representation, 25% of left parties in government, and a 10% unemployment rate.
+
+In which scenario would the model predict a higher social expenditure?
+
+>If we create a multiple linear regression model to predict the level of social expenditure using the coefficients govleft, unemp and proprep.
+
+```{r echo=FALSE}
+multiple_linear_reg <- lm(socexp~govleft+unemp+proprep)
+summary(multiple_linear_reg)
+
+prediction1 <- predict(multiple_linear_reg, data.frame(govleft=75, unemp=5, proprep=1))
+prediction2 <- predict(multiple_linear_reg, data.frame(govleft=25, unemp=10, proprep=1))
+
+pred_tab <- matrix(c(prediction1, prediction2),ncol=2)
+colnames(pred_tab) <- c('Govleft: 75% left, Unemp: 5%', 'Govleft: 25% left, Unemp: 10%')
+pred_tab <- as.table(pred_tab)
+row.names(pred_tab) <- NULL
+
+kable(pred_tab, caption="Predicted level of social expenditures for 2 countries with")
+
+if (prediction1 > prediction2) {
+  print("Model predicts higher social expenditure in 1st country")
+} else {
+  print("Model predicts higher social expenditure in 2nd country")
+}
+```
+
+
+For which variables can you reject the null hypothesis: $H_0 : \beta = 0$ ?
+
+>We can reject the null hypothesis for those variables whern the p-value is less than or equal to the significance level. Typically the significance level is 0.05.
+
+```{r echo=FALSE}
+pValueTable <-matrix(c(summary(reg1)$coefficients[2,4], summary(reg2)$coefficients[2,4], summary(reg3)$coefficients[2,4]),ncol=3)
+colnames(pValueTable) <- c('govleft', 'unemp', 'proprep')
+pValueTable <- as.table(pValueTable)
+row.names(pValueTable) <- c('p-value')
+kable(pValueTable, caption="P-values for different models")
+```
+
+>Observing the table, we reject the null hypothesis for the variable govleft.
+
+# References
+- https://datacamp.com/community/tutorials/linear-regression-R
