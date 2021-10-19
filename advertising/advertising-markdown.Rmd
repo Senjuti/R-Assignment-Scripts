@@ -1,0 +1,41 @@
+---
+title: "Linear Regression with Advertising Data"
+author: "Senjuti Kundu"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    math: katex
+params:
+  dataset: "socexpdata.csv"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(ggplot2)
+library(tidyverse)
+```
+
+## Problem 1
+
+Read the following csv file in R: ("https://www.statlearning.com/s/Advertising.csv"). Let the _sales_ be your response variable (y) and _TV_ be your predictor (x). Fit a linear regression model in R. Use ggplot2 to draw a scatter plot and add the fitted line to the plot.
+
+```{r echo=FALSE, message=FALSE}
+data <- read_csv(file="Advertising.csv")
+reg <- lm(sales~TV,data=data)
+summary(reg)
+
+ggplot(data, aes(x=sales,y=TV)) + geom_point() + geom_smooth(method=lm, se=FALSE)
+```
+
+## Problem 2
+
+Load the _mpgdata_ in tidyverse package. Fit the simple linear regression with _hwy_ as response and _cty_ as predictor. Visualize the result by adding the fitted line and confidence band to the scatter plot.
+
+```{r echo=FALSE, message=FALSE}
+data("mpg")
+reg2 <- lm(hwy~cty,data=mpg)
+ggplot(mpg, aes(x=hwy,y=cty)) + geom_point() + geom_smooth(method=lm, se=TRUE)
+```
+

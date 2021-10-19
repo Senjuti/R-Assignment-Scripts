@@ -38,7 +38,7 @@ The data set ``r params$dataset`` contains the following variables for 23 OECD c
 Using R, load the data set ``r params$dataset``.
 
 ```{r echo=FALSE}
-data <- read.csv(file="C:\\Users\\senju\\Documents\\R-Projects\\socexpdata.csv")
+data <- read.csv(file="socexpdata.csv")
 df <- data.frame(data)
 
 socexp <- df[, 6]
